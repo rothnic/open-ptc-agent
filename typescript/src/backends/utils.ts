@@ -218,12 +218,13 @@ export function globSearchFiles(
 
 /**
  * Sanitize a tool call ID for use as a file path component.
+ * Replaces any characters except alphanumeric, underscore, and hyphen with underscores.
  *
  * @param toolCallId - Original tool call ID
  * @returns Sanitized string safe for file paths
  */
 export function sanitizeToolCallId(toolCallId: string): string {
-  // Replace any non-alphanumeric characters with underscores
+  // Replace any characters except alphanumeric, underscore, and hyphen with underscores
   return toolCallId.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 

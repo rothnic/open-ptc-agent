@@ -159,7 +159,7 @@ elif STORAGE_PROVIDER == "oss":
     )
     _PROVIDER_NAME = "Alibaba Cloud OSS"
 
-else:  # Default to R2
+else:  # Fallback to R2 (when provider is not 's3', 'oss', or 'none')
     from src.utils.storage.r2_uploader import (
         upload_file,
         upload_base64,

@@ -22,6 +22,21 @@ import {
 } from "./utils.js";
 
 /**
+ * State shape expected by StateBackend.
+ * The state object must have an optional files property.
+ */
+interface StateWithFiles {
+  files?: Record<string, FileData>;
+}
+
+/**
+ * Type guard to check if state has files property.
+ */
+function hasFiles(state: unknown): state is StateWithFiles {
+  return typeof state === 'object' && state !== null;
+}
+
+/**
  * Backend that stores files in agent state (ephemeral).
  *
  * Uses LangGraph's state management and checkpointing. Files persist within
@@ -43,10 +58,11 @@ export class StateBackend implements BackendProtocol {
    * Get files from current state.
    */
   private getFiles(): Record<string, FileData> {
-    return (
-      ((this.stateAndStore.state as any).files as Record<string, FileData>) ||
-      {}
-    );
+    const state = this.stateAndStore.state;
+    if (hasFiles(state) && state.files) {
+      return state.files;
+    }
+    return {};
   }
 
   /**
