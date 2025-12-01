@@ -69,3 +69,21 @@ CLAUDE.md
 WARP.md
 
 posts/
+
+# Node.js / TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# TypeScript build output
+typescript/dist/
+*.tsbuildinfo
+
+# Lock files in subdirectories (keep if needed)
+# python/uv.lock - committed for reproducible builds
+
+# Vitest
+coverage/

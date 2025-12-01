@@ -4,9 +4,19 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![GitHub stars](https://img.shields.io/github/stars/Chen-zexi/open-ptc-agent?style=social)](https://github.com/Chen-zexi/open-ptc-agent/stargazers)
 
 [Getting Started](#getting-started) | [Demo Notebooks](#demo-notebooks) | [Configuration](docs/CONFIGURATION.md) | [Changelog](docs/CHANGELOG.md) | [Roadmap](#roadmap)
+
+## Language Implementations
+
+This repository provides both Python and TypeScript implementations of PTC Agent:
+
+| Language | Directory | Framework | Status |
+|----------|-----------|-----------|--------|
+| Python | [`python/`](./python) | [deepagents](https://github.com/langchain-ai/deepagents) | ✅ Complete |
+| TypeScript | [`typescript/`](./typescript) | [deepagentsjs](https://github.com/langchain-ai/deepagentsjs) | 🚧 In Progress |
 
 ## What is Programmatic Tool Calling?
 
@@ -47,6 +57,8 @@ User Task
 
 ## What's New
 
+- **TypeScript Implementation** - Full TypeScript/LangChainJS implementation using [deepagentsjs](https://github.com/langchain-ai/deepagentsjs)
+- **Monorepo Structure** - Python and TypeScript implementations in a unified repository
 - **Background Subagent Execution** - Subagents now run asynchronously using a "waiting room" pattern, allowing the main agent to continue working while delegated tasks execute in the background
 - **Vision/Multimodal Support** - New `view_image` tool enables vision-capable LLMs to analyze images from URLs, base64 data, or sandbox files
 - **Task Monitoring** - New `wait()` and `check_task_progress()` tools for monitoring and collecting background task results
@@ -65,30 +77,47 @@ User Task
 ## Project Structure
 
 ```
-├── src/
-│   ├── ptc_core/              # Core infrastructure
-│   │   ├── sandbox.py         # PTCSandbox (glob, grep, read, write)
-│   │   ├── mcp_registry.py    # MCP server discovery & connection
-│   │   ├── tool_generator.py  # MCP schema → Python functions
-│   │   ├── session.py         # Session lifecycle management
-│   │   └── config.py          # Configuration classes
+├── python/                        # Python implementation
+│   ├── src/
+│   │   ├── ptc_core/              # Core infrastructure
+│   │   │   ├── sandbox.py         # PTCSandbox (glob, grep, read, write)
+│   │   │   ├── mcp_registry.py    # MCP server discovery & connection
+│   │   │   ├── tool_generator.py  # MCP schema → Python functions
+│   │   │   ├── session.py         # Session lifecycle management
+│   │   │   └── config.py          # Configuration classes
+│   │   │
+│   │   └── agent/                 # Agent implementation
+│   │       ├── agent.py           # PTCAgent, PTCExecutor
+│   │       ├── config.py          # AgentConfig
+│   │       ├── tools/             # Native tool implementations
+│   │       ├── prompts/           # Jinja2 templates
+│   │       ├── subagents/         # Research & general-purpose subagents
+│   │       ├── middleware/        # Background execution, vision support
+│   │       └── backends/          # DaytonaBackend
 │   │
-│   └── agent/                 # Agent implementation
-│       ├── agent.py           # PTCAgent, PTCExecutor
-│       ├── config.py          # AgentConfig
-│       ├── tools/             # Native tool implementations
-│       ├── prompts/           # Jinja2 templates
-│       ├── subagents/         # Research & general-purpose subagents
-│       ├── middleware/        # Background execution, vision support
-│       └── backends/          # DaytonaBackend
+│   ├── mcp_servers/               # Custom MCP server implementations
+│   │   ├── yfinance_mcp_server.py
+│   │   └── tickertick_mcp_server.py
+│   │
+│   ├── config.yaml                # Main configuration
+│   ├── llms.json                  # LLM provider definitions
+│   └── PTC_Agent.ipynb            # Demo notebook
 │
-├── mcp_servers/               # Custom MCP server implementations for demo purposes
-│   ├── yfinance_mcp_server.py
-│   └── tickertick_mcp_server.py
+├── typescript/                    # TypeScript implementation
+│   ├── src/
+│   │   ├── agent.ts               # PTCAgent implementation
+│   │   ├── backends/              # Backend implementations
+│   │   │   ├── daytona.ts         # DaytonaBackend
+│   │   │   ├── state.ts           # StateBackend (in-memory)
+│   │   │   └── protocol.ts        # Backend protocol definitions
+│   │   └── middleware/            # Middleware components
+│   │
+│   ├── tests/                     # Test suite
+│   ├── package.json
+│   └── tsconfig.json
 │
-├── config.yaml                # Main configuration
-├── llms.json                  # LLM provider definitions
-└── PTC_Agent.ipynb            # Demo notebook
+├── package.json                   # Root monorepo package.json
+└── README.md
 ```
 
 ## Native Tools
@@ -182,21 +211,31 @@ print(summary)
 
 ### Prerequisites
 
-- Python 3.12+
-- Node.js (for MCP servers)
-- [uv](https://docs.astral.sh/uv/) package manager
+- Python 3.12+ (for Python implementation)
+- Node.js 22+ (for TypeScript implementation and MCP servers)
+- [uv](https://docs.astral.sh/uv/) package manager (for Python)
+- [pnpm](https://pnpm.io/) or npm (for TypeScript)
 
-### Installation
+### Python Installation
+
+```bash
+git clone https://github.com/Chen-zexi/open-ptc-agent.git
+cd open-ptc-agent/python
+uv sync
+```
+
+### TypeScript Installation
 
 ```bash
 git clone https://github.com/Chen-zexi/open-ptc-agent.git
 cd open-ptc-agent
-uv sync
+npm install  # or pnpm install
+npm run build
 ```
 
 ### Minimal Configuration
 
-Create a `.env` file with the minimum required keys:
+Create a `.env` file in the appropriate directory with the minimum required keys:
 
 ```bash
 # One LLM provider (choose one)

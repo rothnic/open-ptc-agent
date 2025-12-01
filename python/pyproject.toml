@@ -2,7 +2,7 @@
 name = "open-ptc-agent"
 version = "0.1.0"
 description = "Open source implementation of Programmatic Tool Calling (PTC) with MCP, powered by LangGraph and Daytona"
-readme = "README.md"
+readme = "../README.md"
 license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
