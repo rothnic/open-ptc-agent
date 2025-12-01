@@ -14,4 +14,5 @@ export {
   SUBAGENT_COORDINATION,
   DATA_PROCESSING,
   IMAGE_UPLOAD,
+  TASK_WORKFLOW,
 } from "./templates.js";

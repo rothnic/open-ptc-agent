@@ -7,9 +7,9 @@
  *
  * Configuration is driven by environment variables:
  * - PTC_DEFAULT_MODEL: Default model to use
- * - PTC_POWERFUL_MODEL: Model for complex tasks
- * - PTC_STANDARD_MODEL: Model for general use
- * - PTC_LIGHTWEIGHT_MODEL: Model for simple tasks
+ * - PTC_MODEL_SMALL: Model for simple, fast tasks
+ * - PTC_MODEL_MEDIUM: Model for general use
+ * - PTC_MODEL_LARGE: Model for complex reasoning tasks
  * - PTC_RESEARCH_MODEL: Override model for research subagent
  * - PTC_GENERAL_PURPOSE_MODEL: Override model for general-purpose subagent
  *
@@ -35,6 +35,7 @@ export {
   getModelForTier,
   validateApiKeys,
   requireEnv,
+  loadSharedPrompt,
   type PTCEnvConfig,
 } from "./config/index.js";
 
@@ -51,6 +52,7 @@ export {
   SUBAGENT_COORDINATION,
   DATA_PROCESSING,
   IMAGE_UPLOAD,
+  TASK_WORKFLOW,
 } from "./prompts/index.js";
 
 // Backend exports

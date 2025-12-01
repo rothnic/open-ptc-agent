@@ -1,9 +1,12 @@
 /**
  * Prompt templates for PTC Agent.
  *
- * These templates mirror the Python implementation's Jinja2 templates,
- * providing consistent prompts across both implementations.
+ * These templates load from the shared/prompts directory to maintain
+ * consistency between Python and TypeScript implementations.
  */
+
+import * as fs from "fs";
+import * as path from "path";
 
 /**
  * Get the current date formatted for prompts.
@@ -13,9 +16,38 @@ export function getCurrentDate(): string {
 }
 
 /**
- * Workspace paths component - describes the sandbox filesystem structure.
+ * Try to load a shared prompt from multiple possible locations.
  */
-export const WORKSPACE_PATHS = `
+function tryLoadSharedPrompt(promptPath: string): string | null {
+  const possiblePaths = [
+    path.join(process.cwd(), "shared", "prompts", promptPath),
+    path.join(process.cwd(), "..", "shared", "prompts", promptPath),
+    path.join(__dirname, "..", "..", "..", "shared", "prompts", promptPath),
+  ];
+
+  for (const fullPath of possiblePaths) {
+    try {
+      if (fs.existsSync(fullPath)) {
+        return fs.readFileSync(fullPath, "utf-8");
+      }
+    } catch {
+      // Continue to next path
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Load a shared prompt or return a fallback.
+ */
+function loadPromptWithFallback(promptPath: string, fallback: string): string {
+  const content = tryLoadSharedPrompt(promptPath);
+  return content ?? fallback;
+}
+
+// Fallback prompts in case shared files are not available
+const WORKSPACE_PATHS_FALLBACK = `
 ## Workspace Paths
 
 - \`/home/daytona\` - Main working directory
@@ -26,10 +58,7 @@ export const WORKSPACE_PATHS = `
 All file operations should use absolute paths within these directories.
 `;
 
-/**
- * Tool discovery component - how to find and use MCP tools.
- */
-export const TOOL_DISCOVERY = `
+const TOOL_DISCOVERY_FALLBACK = `
 ## Tool Discovery
 
 MCP tools are available as Python modules in the \`/home/daytona/tools\` directory.
@@ -42,10 +71,7 @@ To discover available tools:
 Each tool module includes docstrings describing function parameters and return values.
 `;
 
-/**
- * Output guidelines component - how to format and save outputs.
- */
-export const OUTPUT_GUIDELINES = `
+const OUTPUT_GUIDELINES_FALLBACK = `
 ## Output Guidelines
 
 1. **Save results to files**: Write comprehensive results to \`/results/\` directory
@@ -55,10 +81,7 @@ export const OUTPUT_GUIDELINES = `
 5. **Handle large data**: Save raw data to files, return only summaries
 `;
 
-/**
- * Citation rules component - how to cite sources.
- */
-export const CITATION_RULES = `
+const CITATION_RULES_FALLBACK = `
 ## Citation Rules
 
 When referencing external sources:
@@ -68,10 +91,7 @@ When referencing external sources:
 4. Distinguish between facts and analysis
 `;
 
-/**
- * Subagent coordination component - how to delegate to subagents.
- */
-export const SUBAGENT_COORDINATION = `
+const SUBAGENT_COORDINATION_FALLBACK = `
 ## Subagent Coordination
 
 Use the \`task()\` tool to delegate work to specialized subagents:
@@ -86,10 +106,7 @@ When delegating:
 4. Consider parallelizing independent tasks
 `;
 
-/**
- * Data processing component - guidelines for handling data.
- */
-export const DATA_PROCESSING = `
+const DATA_PROCESSING_FALLBACK = `
 ## Data Processing
 
 When working with data:
@@ -100,10 +117,7 @@ When working with data:
 5. **Visualize when helpful**: Create charts and save as images
 `;
 
-/**
- * Image upload component - for image/chart handling.
- */
-export const IMAGE_UPLOAD = `
+const IMAGE_UPLOAD_FALLBACK = `
 ## Image Upload
 
 Charts and images can be automatically uploaded to cloud storage:
@@ -112,6 +126,96 @@ Charts and images can be automatically uploaded to cloud storage:
 3. Include the filename in your response
 4. The system will provide a public URL for the uploaded image
 `;
+
+const TASK_WORKFLOW_FALLBACK = `
+# Task Workflow
+
+Follow this workflow for all task requests:
+
+1. **Save the request**: Use write_file() to save the user's task description to \`/results/task_request.md\`
+2. **Plan**: Create a todo list with write_todos to break down the task into focused steps
+3. **Execute**: Delegate subtasks to sub-agents using the task() tool, or execute directly
+4. **Write Output**: Write comprehensive results to \`/results/\` directory (see Output Guidelines below)
+5. **Verify**: Read \`/results/task_request.md\` to confirm you've addressed all aspects of the original request
+
+## Task Planning Guidelines
+- Batch similar subtasks into a single TODO to minimize overhead
+- For simple tasks, execute directly or use 1 sub-agent
+- For comparisons or multi-faceted tasks, delegate to multiple parallel sub-agents
+- Each sub-agent should handle one specific aspect and return findings
+`;
+
+/**
+ * Workspace paths component - describes the sandbox filesystem structure.
+ * Loaded from shared/prompts/components/workspace_paths.md
+ */
+export const WORKSPACE_PATHS = loadPromptWithFallback(
+  "components/workspace_paths.md",
+  WORKSPACE_PATHS_FALLBACK
+);
+
+/**
+ * Tool discovery component - how to find and use MCP tools.
+ * Loaded from shared/prompts/components/tool_discovery.md
+ */
+export const TOOL_DISCOVERY = loadPromptWithFallback(
+  "components/tool_discovery.md",
+  TOOL_DISCOVERY_FALLBACK
+);
+
+/**
+ * Output guidelines component - how to format and save outputs.
+ * Loaded from shared/prompts/components/output_guidelines.md
+ */
+export const OUTPUT_GUIDELINES = loadPromptWithFallback(
+  "components/output_guidelines.md",
+  OUTPUT_GUIDELINES_FALLBACK
+);
+
+/**
+ * Citation rules component - how to cite sources.
+ * Loaded from shared/prompts/components/citation_rules.md
+ */
+export const CITATION_RULES = loadPromptWithFallback(
+  "components/citation_rules.md",
+  CITATION_RULES_FALLBACK
+);
+
+/**
+ * Subagent coordination component - how to delegate to subagents.
+ * Loaded from shared/prompts/components/subagent_coordination.md
+ */
+export const SUBAGENT_COORDINATION = loadPromptWithFallback(
+  "components/subagent_coordination.md",
+  SUBAGENT_COORDINATION_FALLBACK
+);
+
+/**
+ * Data processing component - guidelines for handling data.
+ * Loaded from shared/prompts/components/data_processing.md
+ */
+export const DATA_PROCESSING = loadPromptWithFallback(
+  "components/data_processing.md",
+  DATA_PROCESSING_FALLBACK
+);
+
+/**
+ * Image upload component - for image/chart handling.
+ * Loaded from shared/prompts/components/image_upload.md
+ */
+export const IMAGE_UPLOAD = loadPromptWithFallback(
+  "components/image_upload.md",
+  IMAGE_UPLOAD_FALLBACK
+);
+
+/**
+ * Task workflow component - main task execution workflow.
+ * Loaded from shared/prompts/components/task_workflow.md
+ */
+export const TASK_WORKFLOW = loadPromptWithFallback(
+  "components/task_workflow.md",
+  TASK_WORKFLOW_FALLBACK
+);
 
 /**
  * Build the main system prompt with all components.
@@ -130,34 +234,18 @@ export function buildSystemPrompt(options: {
   let prompt = `For context, today's date is ${date}.\n\n`;
 
   if (includeTaskWorkflow) {
-    prompt += `<task_workflow>
-# Task Workflow
-
-Follow this workflow for all task requests:
-
-1. **Save the request**: Use write_file() to save the user's task description to \`/results/task_request.md\`
-2. **Plan**: Create a todo list with write_todos to break down the task into focused steps
-3. **Execute**: Delegate subtasks to sub-agents using the task() tool, or execute directly
-4. **Write Output**: Write comprehensive results to \`/results/\` directory (see Output Guidelines below)
-5. **Verify**: Read \`/results/task_request.md\` to confirm you've addressed all aspects of the original request
-
-## Task Planning Guidelines
-- Batch similar subtasks into a single TODO to minimize overhead
-- For simple tasks, execute directly or use 1 sub-agent
-- For comparisons or multi-faceted tasks, delegate to multiple parallel sub-agents
-- Each sub-agent should handle one specific aspect and return findings
-</task_workflow>\n\n`;
+    prompt += `<task_workflow>\n${TASK_WORKFLOW}\n</task_workflow>\n\n`;
   }
 
-  prompt += `<workspace_paths>${WORKSPACE_PATHS}</workspace_paths>\n\n`;
-  prompt += `<tool_discovery>${TOOL_DISCOVERY}</tool_discovery>\n\n`;
-  prompt += `<output_guidelines>${OUTPUT_GUIDELINES}</output_guidelines>\n\n`;
-  prompt += `<citation_rules>${CITATION_RULES}</citation_rules>\n\n`;
-  prompt += `<subagent_coordination>${SUBAGENT_COORDINATION}</subagent_coordination>\n\n`;
-  prompt += `<data_processing>${DATA_PROCESSING}</data_processing>\n\n`;
+  prompt += `<workspace_paths>\n${WORKSPACE_PATHS}\n</workspace_paths>\n\n`;
+  prompt += `<tool_discovery>\n${TOOL_DISCOVERY}\n</tool_discovery>\n\n`;
+  prompt += `<output_guidelines>\n${OUTPUT_GUIDELINES}\n</output_guidelines>\n\n`;
+  prompt += `<citation_rules>\n${CITATION_RULES}\n</citation_rules>\n\n`;
+  prompt += `<subagent_coordination>\n${SUBAGENT_COORDINATION}\n</subagent_coordination>\n\n`;
+  prompt += `<data_processing>\n${DATA_PROCESSING}\n</data_processing>\n\n`;
 
   if (storageEnabled) {
-    prompt += `<image_upload>${IMAGE_UPLOAD}</image_upload>\n\n`;
+    prompt += `<image_upload>\n${IMAGE_UPLOAD}\n</image_upload>\n\n`;
   }
 
   return prompt;
@@ -165,6 +253,7 @@ Follow this workflow for all task requests:
 
 /**
  * Research subagent prompt template.
+ * Loaded from shared/prompts/subagents/research.md
  */
 export function buildResearchPrompt(options: {
   date?: string;
@@ -172,6 +261,15 @@ export function buildResearchPrompt(options: {
 } = {}): string {
   const { date = getCurrentDate(), maxIterations = 5 } = options;
 
+  // Try to load from shared prompts
+  const sharedPrompt = tryLoadSharedPrompt("subagents/research.md");
+  
+  if (sharedPrompt) {
+    // Add date context and return
+    return `For context, today's date is ${date}.\n\n${sharedPrompt}\n\n<citation_rules>\n${CITATION_RULES}\n</citation_rules>`;
+  }
+
+  // Fallback to inline prompt
   return `Developer: You are a research assistant subagent conducting research on the user's input topic. For context, today's date is ${date}.
 
 <role>
@@ -228,6 +326,7 @@ ${CITATION_RULES}
 
 /**
  * General-purpose subagent prompt template.
+ * Loaded from shared/prompts/subagents/general_purpose.md
  */
 export function buildGeneralPurposePrompt(options: {
   date?: string;
@@ -240,6 +339,24 @@ export function buildGeneralPurposePrompt(options: {
     storageEnabled = false,
   } = options;
 
+  // Try to load from shared prompts
+  const sharedPrompt = tryLoadSharedPrompt("subagents/general_purpose.md");
+  
+  if (sharedPrompt) {
+    let prompt = `For context, today's date is ${date}.\n\n${sharedPrompt}`;
+    
+    prompt += `\n\n<tool_discovery>\n${TOOL_DISCOVERY}\n</tool_discovery>`;
+    prompt += `\n\n<workspace_paths>\n${WORKSPACE_PATHS}\n</workspace_paths>`;
+    prompt += `\n\n<data_processing>\n${DATA_PROCESSING}\n</data_processing>`;
+    
+    if (storageEnabled) {
+      prompt += `\n\n<image_upload>\n${IMAGE_UPLOAD}\n</image_upload>`;
+    }
+    
+    return prompt;
+  }
+
+  // Fallback to inline prompt
   let prompt = `You are a general-purpose task execution agent. For context, today's date is ${date}.
 
 <Task>

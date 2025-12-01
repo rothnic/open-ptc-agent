@@ -5,13 +5,16 @@
  * All configuration can be set via environment variables for flexibility.
  */
 
+import * as fs from "fs";
+import * as path from "path";
+
 /**
  * Model tier for configuring different capability levels.
- * - "powerful": High-capability model for complex reasoning
- * - "standard": Balanced model for general use
- * - "lightweight": Fast, efficient model for simple tasks
+ * - "small": Fast, efficient model for simple tasks
+ * - "medium": Balanced model for general use
+ * - "large": High-capability model for complex reasoning
  */
-export type ModelTier = "powerful" | "standard" | "lightweight";
+export type ModelTier = "small" | "medium" | "large";
 
 /**
  * Get an environment variable with an optional default.
@@ -57,12 +60,12 @@ export interface PTCEnvConfig {
   // Model Configuration
   /** Default model to use (can be model ID or alias) */
   defaultModel: string;
-  /** Powerful model for complex tasks */
-  powerfulModel: string;
-  /** Standard model for general use */
-  standardModel: string;
-  /** Lightweight model for simple tasks */
-  lightweightModel: string;
+  /** Small model for simple, fast tasks */
+  smallModel: string;
+  /** Medium model for general use */
+  mediumModel: string;
+  /** Large model for complex reasoning tasks */
+  largeModel: string;
 
   // API Keys
   /** Anthropic API key */
@@ -85,9 +88,9 @@ export interface PTCEnvConfig {
   // Subagent Configuration
   /** Enabled subagent types */
   enabledSubagents: string[];
-  /** Model to use for research subagent (defaults to standardModel) */
+  /** Model to use for research subagent (defaults to mediumModel) */
   researchModel?: string;
-  /** Model to use for general-purpose subagent (defaults to standardModel) */
+  /** Model to use for general-purpose subagent (defaults to mediumModel) */
   generalPurposeModel?: string;
 
   // Logging
@@ -100,9 +103,9 @@ export interface PTCEnvConfig {
  *
  * Environment variables:
  * - PTC_DEFAULT_MODEL: Default model to use
- * - PTC_POWERFUL_MODEL: Model for complex tasks
- * - PTC_STANDARD_MODEL: Model for general use
- * - PTC_LIGHTWEIGHT_MODEL: Model for simple tasks
+ * - PTC_MODEL_SMALL: Model for simple, fast tasks
+ * - PTC_MODEL_MEDIUM: Model for general use
+ * - PTC_MODEL_LARGE: Model for complex reasoning tasks
  * - ANTHROPIC_API_KEY: Anthropic API key
  * - OPENAI_API_KEY: OpenAI API key
  * - GOOGLE_API_KEY: Google/Gemini API key
@@ -117,16 +120,16 @@ export interface PTCEnvConfig {
  */
 export function loadEnvConfig(): PTCEnvConfig {
   // Default model identifiers
-  const defaultPowerful = "claude-sonnet-4-5-20250929";
-  const defaultStandard = "claude-sonnet-4-5-20250929";
-  const defaultLightweight = "claude-sonnet-4-5-20250929";
+  const defaultSmall = "claude-sonnet-4-5-20250929";
+  const defaultMedium = "claude-sonnet-4-5-20250929";
+  const defaultLarge = "claude-sonnet-4-5-20250929";
 
   const config: PTCEnvConfig = {
     // Model Configuration
-    defaultModel: getEnv("PTC_DEFAULT_MODEL", defaultStandard)!,
-    powerfulModel: getEnv("PTC_POWERFUL_MODEL", defaultPowerful)!,
-    standardModel: getEnv("PTC_STANDARD_MODEL", defaultStandard)!,
-    lightweightModel: getEnv("PTC_LIGHTWEIGHT_MODEL", defaultLightweight)!,
+    defaultModel: getEnv("PTC_DEFAULT_MODEL", defaultMedium)!,
+    smallModel: getEnv("PTC_MODEL_SMALL", defaultSmall)!,
+    mediumModel: getEnv("PTC_MODEL_MEDIUM", defaultMedium)!,
+    largeModel: getEnv("PTC_MODEL_LARGE", defaultLarge)!,
 
     // API Keys
     anthropicApiKey: getEnv("ANTHROPIC_API_KEY"),
@@ -163,12 +166,12 @@ export function loadEnvConfig(): PTCEnvConfig {
  */
 export function getModelForTier(tier: ModelTier, config: PTCEnvConfig): string {
   switch (tier) {
-    case "powerful":
-      return config.powerfulModel;
-    case "standard":
-      return config.standardModel;
-    case "lightweight":
-      return config.lightweightModel;
+    case "small":
+      return config.smallModel;
+    case "medium":
+      return config.mediumModel;
+    case "large":
+      return config.largeModel;
     default:
       return config.defaultModel;
   }
@@ -211,4 +214,31 @@ export function getEnvConfig(): PTCEnvConfig {
  */
 export function resetEnvConfig(): void {
   _envConfig = null;
+}
+
+/**
+ * Load a shared prompt from the shared/prompts directory.
+ *
+ * @param promptPath - Relative path within shared/prompts (e.g., "components/workspace_paths.md")
+ * @returns The prompt content as a string
+ */
+export function loadSharedPrompt(promptPath: string): string {
+  // Try multiple possible locations for the shared directory
+  const possiblePaths = [
+    path.join(process.cwd(), "shared", "prompts", promptPath),
+    path.join(process.cwd(), "..", "shared", "prompts", promptPath),
+    path.join(__dirname, "..", "..", "..", "shared", "prompts", promptPath),
+  ];
+
+  for (const fullPath of possiblePaths) {
+    try {
+      if (fs.existsSync(fullPath)) {
+        return fs.readFileSync(fullPath, "utf-8");
+      }
+    } catch {
+      // Continue to next path
+    }
+  }
+
+  throw new Error(`Shared prompt not found: ${promptPath}`);
 }

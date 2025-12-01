@@ -9,6 +9,7 @@ export {
   getModelForTier,
   validateApiKeys,
   requireEnv,
+  loadSharedPrompt,
   type PTCEnvConfig,
   type ModelTier,
 } from "./env.js";

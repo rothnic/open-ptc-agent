@@ -1,0 +1,48 @@
+# PTC Agent Shared Configuration
+# This file contains common configuration shared between Python and TypeScript implementations
+
+# Model Tiers
+# Use environment variables to configure models at different capability levels:
+# - PTC_MODEL_SMALL: Fast, efficient model for simple tasks
+# - PTC_MODEL_MEDIUM: Balanced model for general use (default)
+# - PTC_MODEL_LARGE: High-capability model for complex reasoning
+# - PTC_DEFAULT_MODEL: Fallback when no tier specified (defaults to medium)
+
+models:
+  # Default model identifiers (can be overridden by environment variables)
+  small: "claude-sonnet-4-5-20250929"
+  medium: "claude-sonnet-4-5-20250929"
+  large: "claude-sonnet-4-5-20250929"
+  
+  # Subagent-specific model overrides
+  # These can be set to use different model tiers for different subagents
+  # Environment variables: PTC_RESEARCH_MODEL, PTC_GENERAL_PURPOSE_MODEL
+  subagents:
+    research: null      # null = use default model
+    general_purpose: null
+
+# Agent Configuration
+agent:
+  max_recursion_limit: 50
+  enable_vision: true
+  enable_custom_filesystem_tools: true
+  
+  # Enabled subagents
+  subagents:
+    - general-purpose
+    - research
+
+# Workspace Configuration
+workspace:
+  working_directory: "/home/daytona"
+  results_directory: "results"
+  data_directory: "data"
+  tools_directory: "tools"
+  
+  allowed_directories:
+    - "/home/daytona"
+    - "/tmp"
+
+# Logging
+logging:
+  level: "INFO"

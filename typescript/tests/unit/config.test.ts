@@ -30,30 +30,30 @@ describe("Environment Configuration", () => {
     it("should load default values when no env vars set", () => {
       // Clear relevant env vars
       delete process.env.PTC_DEFAULT_MODEL;
-      delete process.env.PTC_POWERFUL_MODEL;
-      delete process.env.PTC_STANDARD_MODEL;
-      delete process.env.PTC_LIGHTWEIGHT_MODEL;
+      delete process.env.PTC_MODEL_SMALL;
+      delete process.env.PTC_MODEL_MEDIUM;
+      delete process.env.PTC_MODEL_LARGE;
 
       const config = loadEnvConfig();
 
       expect(config.defaultModel).toBe("claude-sonnet-4-5-20250929");
-      expect(config.powerfulModel).toBe("claude-sonnet-4-5-20250929");
-      expect(config.standardModel).toBe("claude-sonnet-4-5-20250929");
-      expect(config.lightweightModel).toBe("claude-sonnet-4-5-20250929");
+      expect(config.smallModel).toBe("claude-sonnet-4-5-20250929");
+      expect(config.mediumModel).toBe("claude-sonnet-4-5-20250929");
+      expect(config.largeModel).toBe("claude-sonnet-4-5-20250929");
     });
 
     it("should load custom model values from env", () => {
       process.env.PTC_DEFAULT_MODEL = "custom-default";
-      process.env.PTC_POWERFUL_MODEL = "custom-powerful";
-      process.env.PTC_STANDARD_MODEL = "custom-standard";
-      process.env.PTC_LIGHTWEIGHT_MODEL = "custom-lightweight";
+      process.env.PTC_MODEL_SMALL = "custom-small";
+      process.env.PTC_MODEL_MEDIUM = "custom-medium";
+      process.env.PTC_MODEL_LARGE = "custom-large";
 
       const config = loadEnvConfig();
 
       expect(config.defaultModel).toBe("custom-default");
-      expect(config.powerfulModel).toBe("custom-powerful");
-      expect(config.standardModel).toBe("custom-standard");
-      expect(config.lightweightModel).toBe("custom-lightweight");
+      expect(config.smallModel).toBe("custom-small");
+      expect(config.mediumModel).toBe("custom-medium");
+      expect(config.largeModel).toBe("custom-large");
     });
 
     it("should load subagent model overrides", () => {
@@ -138,15 +138,15 @@ describe("Environment Configuration", () => {
 
   describe("getModelForTier", () => {
     it("should return correct model for each tier", () => {
-      process.env.PTC_POWERFUL_MODEL = "powerful-model";
-      process.env.PTC_STANDARD_MODEL = "standard-model";
-      process.env.PTC_LIGHTWEIGHT_MODEL = "lightweight-model";
+      process.env.PTC_MODEL_SMALL = "small-model";
+      process.env.PTC_MODEL_MEDIUM = "medium-model";
+      process.env.PTC_MODEL_LARGE = "large-model";
 
       const config = loadEnvConfig();
 
-      expect(getModelForTier("powerful", config)).toBe("powerful-model");
-      expect(getModelForTier("standard", config)).toBe("standard-model");
-      expect(getModelForTier("lightweight", config)).toBe("lightweight-model");
+      expect(getModelForTier("small", config)).toBe("small-model");
+      expect(getModelForTier("medium", config)).toBe("medium-model");
+      expect(getModelForTier("large", config)).toBe("large-model");
     });
   });
 

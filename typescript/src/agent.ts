@@ -9,9 +9,9 @@
  *
  * Configuration is driven by environment variables for flexibility:
  * - PTC_DEFAULT_MODEL: Default model to use
- * - PTC_POWERFUL_MODEL: Model for complex tasks
- * - PTC_STANDARD_MODEL: Model for general use
- * - PTC_LIGHTWEIGHT_MODEL: Model for simple tasks
+ * - PTC_MODEL_SMALL: Model for simple, fast tasks
+ * - PTC_MODEL_MEDIUM: Model for general use
+ * - PTC_MODEL_LARGE: Model for complex reasoning tasks
  * - PTC_RESEARCH_MODEL: Override model for research subagent
  * - PTC_GENERAL_PURPOSE_MODEL: Override model for general-purpose subagent
  */
@@ -45,7 +45,7 @@ export interface PTCAgentConfig {
   /**
    * The LLM model to use. Can be:
    * - A model ID string (e.g., "claude-sonnet-4-5-20250929")
-   * - A ModelTier ("powerful", "standard", "lightweight") to use configured models
+   * - A ModelTier ("small", "medium", "large") to use configured models
    * - A BaseLanguageModel instance
    *
    * Defaults to the PTC_DEFAULT_MODEL environment variable or "claude-sonnet-4-5-20250929".
@@ -137,14 +137,14 @@ function resolveModel(
   }
 
   // Check if it's a tier name
-  if (model === "powerful" || model === "standard" || model === "lightweight") {
+  if (model === "small" || model === "medium" || model === "large") {
     switch (model) {
-      case "powerful":
-        return config.powerfulModel;
-      case "standard":
-        return config.standardModel;
-      case "lightweight":
-        return config.lightweightModel;
+      case "small":
+        return config.smallModel;
+      case "medium":
+        return config.mediumModel;
+      case "large":
+        return config.largeModel;
     }
   }
 
@@ -160,9 +160,9 @@ function resolveModel(
  *
  * Model configuration is driven by environment variables:
  * - PTC_DEFAULT_MODEL: Default model (used if no model specified)
- * - PTC_POWERFUL_MODEL: Model for "powerful" tier
- * - PTC_STANDARD_MODEL: Model for "standard" tier
- * - PTC_LIGHTWEIGHT_MODEL: Model for "lightweight" tier
+ * - PTC_MODEL_SMALL: Model for "small" tier (fast, simple tasks)
+ * - PTC_MODEL_MEDIUM: Model for "medium" tier (general use)
+ * - PTC_MODEL_LARGE: Model for "large" tier (complex reasoning)
  *
  * @param config - Agent configuration
  * @returns A configured deep agent ready for invocation
@@ -177,8 +177,8 @@ function resolveModel(
  * });
  *
  * // Use a specific model tier
- * const powerfulAgent = createPTCAgent({
- *   model: "powerful",
+ * const largeAgent = createPTCAgent({
+ *   model: "large",
  *   tools: [executeCodeTool],
  * });
  *
@@ -245,7 +245,7 @@ export function createPTCAgent(config: PTCAgentConfig = {}) {
  * - PTC_RESEARCH_MODEL: Override model for research subagent
  * - PTC_GENERAL_PURPOSE_MODEL: Override model for general-purpose subagent
  *
- * Falls back to PTC_STANDARD_MODEL if not specified.
+ * Falls back to PTC_MODEL_MEDIUM if not specified.
  *
  * @param config - Subagent configuration
  * @returns Array of SubAgent configurations
@@ -266,11 +266,11 @@ export function createPTCSubagents(config: SubagentConfig): SubAgent[] {
   for (const name of names) {
     switch (name) {
       case "research": {
-        // Determine model: override > env var > default
+        // Determine model: override > env var > default (medium)
         const researchModel =
           modelOverrides.research ||
           envConfig.researchModel ||
-          envConfig.standardModel;
+          envConfig.mediumModel;
 
         subagents.push({
           name: "research",
@@ -286,11 +286,11 @@ export function createPTCSubagents(config: SubagentConfig): SubAgent[] {
       }
 
       case "general-purpose": {
-        // Determine model: override > env var > default
+        // Determine model: override > env var > default (medium)
         const generalModel =
           modelOverrides["general-purpose"] ||
           envConfig.generalPurposeModel ||
-          envConfig.standardModel;
+          envConfig.mediumModel;
 
         subagents.push({
           name: "general-purpose",
