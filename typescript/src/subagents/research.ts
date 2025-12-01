@@ -12,6 +12,9 @@ import { buildResearchPrompt } from "../prompts/index.js";
 import { getEnvConfig } from "../config/index.js";
 import { createTavilySearchTool, createThinkTool } from "../tools/research/index.js";
 
+/** Default maximum iterations for research subagent */
+const DEFAULT_MAX_ITERATIONS = 5;
+
 /**
  * Options for creating a research subagent.
  */
@@ -36,7 +39,7 @@ export function getResearchSubagentConfig(
   options: ResearchSubagentOptions = {}
 ): SubAgent {
   const envConfig = getEnvConfig();
-  const { maxIterations = 5, mcpTools = [], model } = options;
+  const { maxIterations = DEFAULT_MAX_ITERATIONS, mcpTools = [], model } = options;
 
   // Build the system prompt
   const instructions = buildResearchPrompt({ maxIterations });

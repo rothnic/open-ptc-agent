@@ -11,6 +11,9 @@ import type { StructuredTool } from "@langchain/core/tools";
 import { buildGeneralPurposePrompt } from "../prompts/index.js";
 import { getEnvConfig } from "../config/index.js";
 
+/** Default maximum iterations for general-purpose subagent */
+const DEFAULT_MAX_ITERATIONS = 15;
+
 /**
  * Options for creating a general-purpose subagent.
  */
@@ -53,7 +56,7 @@ export function getGeneralSubagentConfig(
 ): SubAgent {
   const envConfig = getEnvConfig();
   const {
-    maxIterations = 15,
+    maxIterations = DEFAULT_MAX_ITERATIONS,
     additionalTools = [],
     filesystemTools = [],
     visionTools = [],

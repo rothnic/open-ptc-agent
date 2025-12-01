@@ -139,6 +139,8 @@ export {
   validatePath,
   sanitizeInput,
   DEFAULT_SECURITY_CONFIG,
+  DEFAULT_ALLOWED_DIRECTORIES,
+  DEFAULT_WORKING_DIRECTORY,
   type SecurityConfig,
 } from "./core/index.js";
 

@@ -6,6 +6,12 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import type { SandboxBackendProtocol } from "../../backends/protocol.js";
 
+/** Default timeout in milliseconds (2 minutes) */
+const DEFAULT_TIMEOUT_MS = 120000;
+
+/** Default working directory for sandbox */
+const DEFAULT_WORKING_DIR = "/home/daytona";
+
 /**
  * Factory function to create Bash tool with injected dependencies.
  *
@@ -16,8 +22,8 @@ export function createExecuteBashTool(sandbox: SandboxBackendProtocol) {
   return tool(
     async ({
       command,
-      timeout = 120000,
-      workingDir = "/home/daytona",
+      timeout = DEFAULT_TIMEOUT_MS,
+      workingDir = DEFAULT_WORKING_DIR,
     }) => {
       try {
         // Convert timeout from milliseconds to seconds for sandbox

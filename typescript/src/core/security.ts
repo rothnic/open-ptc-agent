@@ -2,6 +2,12 @@
  * Security utilities for PTC sandbox.
  */
 
+/** Default allowed directories for sandbox operations */
+export const DEFAULT_ALLOWED_DIRECTORIES = ["/home/daytona"];
+
+/** Default working directory for sandbox operations */
+export const DEFAULT_WORKING_DIRECTORY = "/home/daytona";
+
 /**
  * Security configuration.
  */
@@ -79,8 +85,8 @@ export function validateCommand(
  */
 export function validatePath(
   filePath: string,
-  allowedDirectories: string[] = ["/home/daytona"],
-  workingDirectory: string = "/home/daytona"
+  allowedDirectories: string[] = DEFAULT_ALLOWED_DIRECTORIES,
+  workingDirectory: string = DEFAULT_WORKING_DIRECTORY
 ): boolean {
   // Normalize the path
   let normalizedPath = filePath;
