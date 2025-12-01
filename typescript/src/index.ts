@@ -5,6 +5,14 @@
  * This package provides the same capabilities as the Python implementation,
  * leveraging the deepagents library for deep agent functionality.
  *
+ * Configuration is driven by environment variables:
+ * - PTC_DEFAULT_MODEL: Default model to use
+ * - PTC_POWERFUL_MODEL: Model for complex tasks
+ * - PTC_STANDARD_MODEL: Model for general use
+ * - PTC_LIGHTWEIGHT_MODEL: Model for simple tasks
+ * - PTC_RESEARCH_MODEL: Override model for research subagent
+ * - PTC_GENERAL_PURPOSE_MODEL: Override model for general-purpose subagent
+ *
  * @packageDocumentation
  */
 
@@ -14,8 +22,36 @@ export {
   createPTCSubagents,
   type PTCAgentConfig,
   type PTCAgentExecuteOptions,
+  type SubagentConfig,
   type SubAgent,
+  type ModelTier,
 } from "./agent.js";
+
+// Configuration exports
+export {
+  loadEnvConfig,
+  getEnvConfig,
+  resetEnvConfig,
+  getModelForTier,
+  validateApiKeys,
+  requireEnv,
+  type PTCEnvConfig,
+} from "./config/index.js";
+
+// Prompt exports
+export {
+  buildSystemPrompt,
+  buildResearchPrompt,
+  buildGeneralPurposePrompt,
+  getCurrentDate,
+  WORKSPACE_PATHS,
+  TOOL_DISCOVERY,
+  OUTPUT_GUIDELINES,
+  CITATION_RULES,
+  SUBAGENT_COORDINATION,
+  DATA_PROCESSING,
+  IMAGE_UPLOAD,
+} from "./prompts/index.js";
 
 // Backend exports
 export {
