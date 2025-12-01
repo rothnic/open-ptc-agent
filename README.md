@@ -16,7 +16,9 @@ This repository provides both Python and TypeScript implementations of PTC Agent
 | Language | Directory | Framework | Status |
 |----------|-----------|-----------|--------|
 | Python | [`python/`](./python) | [deepagents](https://github.com/langchain-ai/deepagents) | ✅ Complete |
-| TypeScript | [`typescript/`](./typescript) | [deepagentsjs](https://github.com/langchain-ai/deepagentsjs) | 🚧 In Progress |
+| TypeScript | [`typescript/`](./typescript) | [deepagentsjs](https://github.com/langchain-ai/deepagentsjs) | ✅ Complete |
+
+Both implementations follow the same structure and share common prompts/configuration from the `shared/` directory.
 
 ## What is Programmatic Tool Calling?
 
@@ -77,6 +79,13 @@ User Task
 ## Project Structure
 
 ```
+├── shared/                        # Shared resources (language-agnostic)
+│   ├── config/                    # Shared configuration
+│   │   └── defaults.yaml          # Default model and agent settings
+│   └── prompts/                   # Shared prompt templates
+│       ├── components/            # Reusable prompt components
+│       └── subagents/             # Subagent-specific prompts
+│
 ├── python/                        # Python implementation
 │   ├── src/
 │   │   ├── ptc_core/              # Core infrastructure
@@ -90,6 +99,11 @@ User Task
 │   │       ├── agent.py           # PTCAgent, PTCExecutor
 │   │       ├── config.py          # AgentConfig
 │   │       ├── tools/             # Native tool implementations
+│   │       │   ├── bash/          # Shell command execution
+│   │       │   ├── code_execution/ # Python code execution
+│   │       │   ├── filesystem/    # File operations
+│   │       │   ├── research/      # Tavily search, think tool
+│   │       │   └── search/        # Glob, grep tools
 │   │       ├── prompts/           # Jinja2 templates
 │   │       ├── subagents/         # Research & general-purpose subagents
 │   │       ├── middleware/        # Background execution, vision support
@@ -110,7 +124,31 @@ User Task
 │   │   │   ├── daytona.ts         # DaytonaBackend
 │   │   │   ├── state.ts           # StateBackend (in-memory)
 │   │   │   └── protocol.ts        # Backend protocol definitions
-│   │   └── middleware/            # Middleware components
+│   │   ├── config/                # Configuration management
+│   │   │   └── env.ts             # Environment variable config
+│   │   ├── core/                  # Core utilities
+│   │   │   ├── mcp_registry.ts    # MCP server registry
+│   │   │   └── security.ts        # Security utilities
+│   │   ├── middleware/            # Middleware components
+│   │   │   ├── fs.ts              # Filesystem middleware
+│   │   │   └── subagents.ts       # Subagent middleware
+│   │   ├── prompts/               # Prompt templates
+│   │   │   └── templates.ts       # Prompt components
+│   │   ├── subagents/             # Subagent configurations
+│   │   │   ├── general.ts         # General-purpose subagent
+│   │   │   └── research.ts        # Research subagent
+│   │   ├── tools/                 # Native tool implementations
+│   │   │   ├── bash/              # Shell command execution
+│   │   │   ├── code_execution/    # Python code execution
+│   │   │   ├── filesystem/        # File operations
+│   │   │   ├── research/          # Tavily search, think tool
+│   │   │   └── search/            # Glob, grep tools
+│   │   └── utils/                 # Utility modules
+│   │       └── storage/           # Cloud storage (S3, R2)
+│   │
+│   ├── mcp_servers/               # MCP server definitions
+│   │   ├── yfinance.ts            # Yahoo Finance tools
+│   │   └── tickertick.ts          # Tickertick news tools
 │   │
 │   ├── tests/                     # Test suite
 │   ├── package.json
@@ -281,7 +319,36 @@ Optionally, you can use the langgraph api to deploy the agent.
 
 ## Configuration
 
-The project uses two configuration files:
+The project uses shared and language-specific configuration:
+
+### Shared Configuration
+
+The `shared/` directory contains configuration that works across both Python and TypeScript:
+
+- **shared/config/defaults.yaml** - Default model and agent settings
+- **shared/prompts/** - Language-agnostic prompt templates
+
+### Model Tiers
+
+Both implementations support model tiers via environment variables:
+
+```bash
+# Model tiers (small/medium/large)
+PTC_MODEL_SMALL=gpt-4o-mini           # For simple, fast tasks
+PTC_MODEL_MEDIUM=claude-sonnet-4-5-20250929   # For general use (default)
+PTC_MODEL_LARGE=claude-opus-4-5-20250929       # For complex reasoning
+
+# Default model (used when none specified)
+PTC_DEFAULT_MODEL=claude-sonnet-4-5-20250929
+
+# Subagent-specific overrides
+PTC_RESEARCH_MODEL=claude-sonnet-4-5-20250929
+PTC_GENERAL_PURPOSE_MODEL=claude-sonnet-4-5-20250929
+```
+
+### Python Configuration
+
+The Python implementation uses two configuration files in `python/`:
 
 - **config.yaml** - Main configuration (LLM selection, MCP servers, Daytona, security, storage)
 - **llms.json** - LLM provider definitions

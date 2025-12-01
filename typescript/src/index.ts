@@ -92,5 +92,72 @@ export {
   type SubAgentMiddlewareOptions,
 } from "./middleware/index.js";
 
+// Tools exports
+export {
+  // Bash tools
+  createExecuteBashTool,
+  type ExecuteBashTool,
+  // Code execution tools
+  createExecuteCodeTool,
+  type ExecuteCodeTool,
+  // Filesystem tools
+  createFilesystemTools,
+  type FilesystemTools,
+  // Research tools
+  createTavilySearchTool,
+  type TavilySearchTool,
+  createThinkTool,
+  type ThinkTool,
+  // Search tools
+  createGlobTool,
+  type GlobTool,
+  createGrepTool,
+  type GrepTool,
+  // All tools helper
+  createAllTools,
+  type PTCTools,
+} from "./tools/index.js";
+
+// Subagents exports
+export {
+  getGeneralSubagentConfig,
+  createGeneralSubagent,
+  type GeneralSubagentOptions,
+  getResearchSubagentConfig,
+  createResearchSubagent,
+  type ResearchSubagentOptions,
+} from "./subagents/index.js";
+
+// Core exports
+export {
+  MCPRegistry,
+  getMCPRegistry,
+  resetMCPRegistry,
+  type MCPTool,
+  type MCPServerConfig,
+  validateCommand,
+  validatePath,
+  sanitizeInput,
+  DEFAULT_SECURITY_CONFIG,
+  type SecurityConfig,
+} from "./core/index.js";
+
+// Utils exports
+export {
+  type StorageUploader,
+  type UploadOptions,
+  type UploadResult,
+  detectContentType,
+  getStorageProvider,
+  isStorageEnabled,
+  getStorageUploader,
+  S3Uploader,
+  createS3UploaderFromEnv,
+  type S3Config,
+  R2Uploader,
+  createR2UploaderFromEnv,
+  type R2Config,
+} from "./utils/index.js";
+
 // Re-export core deepagents functionality for convenience
 export { createDeepAgent, type CreateDeepAgentParams } from "deepagents";
