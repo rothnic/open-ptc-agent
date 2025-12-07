@@ -2,22 +2,76 @@
 
 [English](CONFIGURATION.md) | [中文](zh/CONFIGURATION.md)
 
-This guide covers all configuration options for Open PTC Agent.
+This guide covers configuration options for the Open PTC Agent TypeScript implementation.
 
-## Overview
+> **Note**: For Python implementation configuration, see the [upstream repository](https://github.com/Chen-zexi/open-ptc-agent).
 
-The project uses two main configuration files:
+## TypeScript Configuration
 
-| File | Purpose |
-|------|---------|
-| `config.yaml` | Main configuration - LLM selection, MCP servers, Daytona sandbox, security, storage, logging |
-| `llms.json` | LLM provider definitions - model IDs, SDKs, API keys |
+### Environment Variables
 
-Credentials are stored separately in `.env` (see `.env.example`).
+The TypeScript implementation uses environment variables for configuration. Create a `.env` file in the `typescript/` directory:
+
+```bash
+# LLM Provider (choose one)
+ANTHROPIC_API_KEY=your-anthropic-key
+# or
+OPENAI_API_KEY=your-openai-key
+
+# Daytona Sandbox (required for DaytonaBackend)
+DAYTONA_API_KEY=your-daytona-key
+DAYTONA_BASE_URL=https://app.daytona.io/api
+
+# MCP Servers (optional)
+TAVILY_API_KEY=your-tavily-key
+
+# Cloud Storage (optional, choose one)
+R2_ACCESS_KEY_ID=your-r2-key
+R2_SECRET_ACCESS_KEY=your-r2-secret
+R2_BUCKET_NAME=your-bucket
+R2_ACCOUNT_ID=your-account
+
+# or AWS S3
+AWS_ACCESS_KEY_ID=your-aws-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret
+AWS_BUCKET_NAME=your-bucket
+AWS_REGION=us-east-1
+```
+
+### Model Tiers
+
+Configure model tiers via environment variables:
+
+```bash
+# Model tiers (small/medium/large)
+PTC_MODEL_SMALL=gpt-4o-mini           # For simple, fast tasks
+PTC_MODEL_MEDIUM=claude-sonnet-4-5-20250929   # For general use (default)
+PTC_MODEL_LARGE=claude-opus-4-5-20250929       # For complex reasoning
+
+# Default model (used when none specified)
+PTC_DEFAULT_MODEL=claude-sonnet-4-5-20250929
+
+# Subagent-specific overrides
+PTC_RESEARCH_MODEL=claude-sonnet-4-5-20250929
+PTC_GENERAL_PURPOSE_MODEL=claude-sonnet-4-5-20250929
+```
+
+### Shared Configuration
+
+The `shared/` directory contains language-agnostic configuration:
+
+- **shared/config/defaults.yaml** - Default model and agent settings
+- **shared/prompts/** - Prompt templates used by the agent
 
 ---
 
-## config.yaml
+## Python Configuration (Legacy Reference)
+
+The following documentation applies to the Python implementation. For the TypeScript implementation, use environment variables as described above.
+
+---
+
+## config.yaml (Python)
 
 ### LLM Selection
 
