@@ -1,315 +1,404 @@
-# Open PTC Agent
-
-[English](README.md) | [中文](README_zh.md)
+# Open PTC Agent (TypeScript)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![GitHub stars](https://img.shields.io/github/stars/Chen-zexi/open-ptc-agent?style=social)](https://github.com/Chen-zexi/open-ptc-agent/stargazers)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js 22+](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
+[![deepagentsjs](https://img.shields.io/badge/deepagentsjs-latest-purple.svg)](https://github.com/langchain-ai/deepagentsjs)
 
-[Getting Started](#getting-started) | [Demo Notebooks](#demo-notebooks) | [Configuration](docs/CONFIGURATION.md) | [Changelog](docs/CHANGELOG.md) | [Roadmap](#roadmap)
+[Getting Started](#getting-started) | [Configuration](#configuration) | [Project Structure](#project-structure) | [API Reference](#api-reference) | [Differences from Python](#differences-from-python-implementation)
+
+---
+
+## Overview
+
+This is the **TypeScript/LangChainJS** implementation of the PTC Agent, built on [deepagentsjs](https://github.com/langchain-ai/deepagentsjs).
+
+> **📌 Looking for the Python implementation?**
+> See the upstream repository: **[Chen-zexi/open-ptc-agent](https://github.com/Chen-zexi/open-ptc-agent)**
+
+---
 
 ## What is Programmatic Tool Calling?
 
-This project is an open source implementation of Anthropic recently introduced [Programmatic Tool Calling (PTC)](https://www.anthropic.com/engineering/advanced-tool-use), which enables agents to invoke tools with code execution rather than making individual JSON tool calls. This paradigm is also featured in their earlier engineering blog [Code execution with MCP](https://www.anthropic.com/engineering/code-execution-with-mcp).
-## Why PTC?
+This project is an open source implementation of Anthropic's [Programmatic Tool Calling (PTC)](https://www.anthropic.com/engineering/advanced-tool-use), which enables agents to invoke tools with code execution rather than making individual JSON tool calls. This paradigm is also featured in their earlier engineering blog [Code execution with MCP](https://www.anthropic.com/engineering/code-execution-with-mcp).
 
-1. LLMs are exceptionally good at writing code! They excel at understanding context, reasoning about data flows, and generating precise logic. PTC lets them do what they do best - write code that orchestrates entire workflows rather than reasoning through one tool call at a time.
+### Why PTC?
 
-2. Traditional tool calling returns full results to the model's context window. Analyzing expenses for 20 employees means 2,000+ line items polluting context - over 110,000 tokens just to produce a summary. With PTC, code runs in a sandbox, processes data locally, and only the final output returns to the model. Result: 85-98% token reduction.
+| Benefit | Description |
+|---------|-------------|
+| **LLMs excel at code** | They write code that orchestrates entire workflows rather than reasoning through one tool call at a time |
+| **Massive token reduction** | Traditional tool calling returns full results to the context window. With PTC, code runs in a sandbox, processes data locally, and only the final output returns to the model. Result: **85-98% token reduction** |
+| **Better for structured data** | PTC shines when working with large volumes of structured data, time series data, and scenarios requiring filtering, aggregating, transforming, or visualizing results |
 
-3. PTC particularly shines when working with large volumes of structured data, time series data (like financial market data), and scenarios requiring further data processing - filtering, aggregating, transforming, or visualizing results before returning them to the model.
-
-## How It Works
-This project is implementing based on [deep-agent](https://github.com/langchain-ai/deepagents) from langchain-ai and [daytona](https://www.daytona.io/) for sandbox environment.
+### How It Works
 
 ```
 User Task
-    |
-    v
-+-------------------+
-|    PTCAgent       |  Tool discovery -> Writes Python code
-+-------------------+
-    |       ^
-    v       |
-+-------------------+
-|  Daytona Sandbox  |  Executes code
-|  +-------------+  |
-|  | MCP Tools   |  |  tool() -> process / filter / aggregate -> dump to data/ directory
-|  | (Python)    |  |
-|  +-------------+  |
-+-------------------+
-    |
-    v
-+-------------------+
-|Final deliverables |  Files and data can be downloaded from sandbox
-+-------------------+
+    │
+    ▼
+┌───────────────────┐
+│   PTCAgent        │  Tool discovery → Writes Python code
+└───────────────────┘
+    │       ▲
+    ▼       │
+┌───────────────────┐
+│  Daytona Sandbox  │  Executes code
+│  ┌─────────────┐  │
+│  │ MCP Tools   │  │  tool() → process/filter/aggregate → dump to data/
+│  │ (Python)    │  │
+│  └─────────────┘  │
+└───────────────────┘
+    │
+    ▼
+┌───────────────────┐
+│ Final deliverables│  Files and data can be downloaded from sandbox
+└───────────────────┘
 ```
 
-## What's New
-
-- **Background Subagent Execution** - Subagents now run asynchronously using a "waiting room" pattern, allowing the main agent to continue working while delegated tasks execute in the background
-- **Vision/Multimodal Support** - New `view_image` tool enables vision-capable LLMs to analyze images from URLs, base64 data, or sandbox files
-- **Task Monitoring** - New `wait()` and `check_task_progress()` tools for monitoring and collecting background task results
+---
 
 ## Features
 
-- **Universal MCP Support** - Auto-converts any MCP server tools to Python functions
-- **Progressive Tool Discovery** - Tools discovered on-demand; avoids large number of tokens of upfront tool definitions
-- **Custom MCP Upload** - Deploy Python MCP implementations directly into sandbox sessions
-- **Enhanced File Tools** - Refined glob, grep and other file operation tools based on LangChain DeepAgent
-- **Daytona Backend** - Secure code execution with filesystem isolation and snapshot support
-- **Auto Image Upload** - Charts and images auto-uploaded to cloud storage (Cloudflare R2, AWS S3, Alibaba OSS)
-- **LangGraph Ready** - Compatible with LangGraph Cloud/Studio deployment
-- **Multi-LLM Support** - Works with Anthropic, OpenAI, and Any LLM provider you configure in `llms.json`
+| Feature | Description |
+|---------|-------------|
+| **deepagentsjs Integration** | Built on [LangChain's deepagentsjs](https://github.com/langchain-ai/deepagentsjs) framework |
+| **Multiple Backends** | StateBackend (in-memory) and DaytonaBackend (sandbox) |
+| **Progressive Tool Discovery** | Tools discovered on-demand for token efficiency |
+| **Model Tiers** | Configurable small/medium/large model selection |
+| **Subagent Support** | Research and general-purpose subagents |
+| **MCP Integration** | Yahoo Finance, Tickertick, and custom MCP servers |
+| **Cloud Storage** | S3 and R2 integration for file uploads |
 
-## Project Structure
+---
 
-```
-├── src/
-│   ├── ptc_core/              # Core infrastructure
-│   │   ├── sandbox.py         # PTCSandbox (glob, grep, read, write)
-│   │   ├── mcp_registry.py    # MCP server discovery & connection
-│   │   ├── tool_generator.py  # MCP schema → Python functions
-│   │   ├── session.py         # Session lifecycle management
-│   │   └── config.py          # Configuration classes
-│   │
-│   └── agent/                 # Agent implementation
-│       ├── agent.py           # PTCAgent, PTCExecutor
-│       ├── config.py          # AgentConfig
-│       ├── tools/             # Native tool implementations
-│       ├── prompts/           # Jinja2 templates
-│       ├── subagents/         # Research & general-purpose subagents
-│       ├── middleware/        # Background execution, vision support
-│       └── backends/          # DaytonaBackend
-│
-├── mcp_servers/               # Custom MCP server implementations for demo purposes
-│   ├── yfinance_mcp_server.py
-│   └── tickertick_mcp_server.py
-│
-├── config.yaml                # Main configuration
-├── llms.json                  # LLM provider definitions
-└── PTC_Agent.ipynb            # Demo notebook
-```
+## Related Documentation
 
-## Native Tools
+### Core Libraries
 
-The agent has access to native tools plus middleware capabilities from [deep-agent](https://github.com/langchain-ai/deepagents):
+| Library | Documentation | Description |
+|---------|---------------|-------------|
+| **deepagentsjs** | [GitHub](https://github.com/langchain-ai/deepagentsjs) | LangChain's TypeScript deep agent framework |
+| **LangChain.js** | [Docs](https://js.langchain.com/docs/) | JavaScript/TypeScript LLM framework |
+| **LangGraph.js** | [Docs](https://langchain-ai.github.io/langgraphjs/) | Framework for building stateful agents |
 
-### Core Tools
+### Upstream Project
 
-| Tool | Description | Key Parameters |
-|------|-------------|----------------|
-| **execute_code** | Execute Python with MCP tool access | `code` |
-| **Bash** | Run shell commands | `command`, `timeout`, `working_dir` |
-| **Read** | Read file with line numbers | `file_path`, `offset`, `limit` |
-| **Write** | Write/overwrite file | `file_path`, `content` |
-| **Edit** | Exact string replacement | `file_path`, `old_string`, `new_string` |
-| **Glob** | File pattern matching | `pattern`, `path` |
-| **Grep** | Content search (ripgrep) | `pattern`, `path`, `output_mode` |
+| Resource | Link |
+|----------|------|
+| **Python Implementation** | [Chen-zexi/open-ptc-agent](https://github.com/Chen-zexi/open-ptc-agent) |
+| **Python deep-agent** | [langchain-ai/deepagents](https://github.com/langchain-ai/deepagents) |
+| **Configuration Guide** | [Python docs/CONFIGURATION.md](https://github.com/Chen-zexi/open-ptc-agent/blob/main/docs/CONFIGURATION.md) |
 
-### Middleware (via langchain/deep-agent)
-
-| Middleware | Description | Tools Provided |
-|------------|-------------|----------------|
-| **SubagentsMiddleware** | Delegates specialized tasks to sub-agents with isolated execution | `task()` |
-| **BackgroundSubagentMiddleware** | Async subagent execution with waiting room pattern | `wait()`, `check_task_progress()` |
-| **ViewImageMiddleware** | Injects images into conversation for multimodal LLMs | `view_image()` |
-| **FilesystemMiddleware** | File operations | `read_file`, `write_file`, `edit_file`, `glob`, `grep`, `ls` |
-| **TodoListMiddleware** | Task planning and progress tracking (auto-enabled) | `write_todos` |
-| **SummarizationMiddleware** | Auto-summarizes conversation history (auto-enabled) | - |
-
-**Available Subagents:**
-- `research` - Web search with Tavily + think tool for strategic reflection
-- `general-purpose` - Full execute_code, filesystem, and vision tools for complex multi-step tasks
-
-Subagents run in the background by default - the main agent can continue working while delegated tasks execute asynchronously.
-
-Note: For better tool discovery, I override the built-in filesystem middleware from langchain deep-agent. You can disable it by setting `use_custom_filesystem_tools` to false in `config.yaml`.
-
-## MCP Integration
-
-### Demo MCP Servers
-
-The demo includes 3 enabled MCP servers configured in `config.yaml`:
-
-| Server | Transport | Tools | Purpose |
-|--------|-----------|-------|---------|
-| **tavily** | stdio (npx) | 4 | Web search |
-| **yfinance** | stdio (python) | 10 | Stock prices, financials |
-| **tickertick** | stdio (python) | 7 | Financial news |
-
-### How MCP Tools Appear
-
-**In Prompts** - Tool summaries are injected into the system prompt:
-```
-tavily: Web search engine for finding current information
-  - Module: tools/tavily.py
-  - Tools: 4 tools available
-  - Import: from tools.tavily import <tool_name>
-```
-
-**In Sandbox** - Full Python modules are generated:
-```
-/home/daytona/
-├── tools/
-│   ├── mcp_client.py      # MCP communication layer
-│   ├── tavily.py          # from tools.tavily import search
-│   ├── yfinance.py        # from tools.yfinance import get_stock_history
-│   └── docs/              # Auto-generated documentation
-│       ├── tavily/*.md
-│       └── yfinance/*.md
-├── results/               # Agent output
-└── data/                  # Input data
-```
-
-**In Code** - Agent imports and uses tools directly:
-```python
-from tools.yfinance import get_stock_history
-import pandas as pd
-
-# Fetch data - stays in sandbox
-history = get_stock_history(ticker="AAPL", period="1y")
-
-# Process locally - no tokens wasted
-df = pd.DataFrame(history)
-summary = {"mean": df["close"].mean(), "volatility": df["close"].std()}
-
-# Only summary returns to model
-print(summary)
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.12+
-- Node.js (for MCP servers)
-- [uv](https://docs.astral.sh/uv/) package manager
-
-### Installation
-
-```bash
-git clone https://github.com/Chen-zexi/open-ptc-agent.git
-cd open-ptc-agent
-uv sync
-```
-
-### Minimal Configuration
-
-Create a `.env` file with the minimum required keys:
-
-```bash
-# One LLM provider (choose one)
-ANTHROPIC_API_KEY=your-key
-# or
-OPENAI_API_KEY=your-key
-# or
-# Any model you configred in llms.json and config.yaml
-
-# Daytona (required)
-DAYTONA_API_KEY=your-key
-```
-Get your Daytona API key from [Daytona Dashboard](https://app.daytona.io/dashboard/keys). They provide free credits for new users!
-
-### Extended Configuration
-
-For full functionality, add optional keys:
-
-```bash
-# MCP Servers
-TAVILY_API_KEY=your-key          # Web search
-ALPHA_VANTAGE_API_KEY=your-key   # Financial data
-
-# Cloud Storage (choose one provider)
-R2_ACCESS_KEY_ID=...             # Cloudflare R2
-AWS_ACCESS_KEY_ID=...            # AWS S3
-OSS_ACCESS_KEY_ID=...            # Alibaba OSS
-
-# Tracing (optional)
-LANGSMITH_API_KEY=your-key
-```
-
-See `.env.example` for the complete list of configuration options.
-
-### Demo Notebooks
-
-Quick start with the jupyter notebooks:
-
-- **PTC_Agent.ipynb** - Quick demo with open-ptc-agent
-- **example/Subagent_demo.ipynb** - Background subagent execution with research and general-purpose agents
-
-Optionally, you can use the langgraph api to deploy the agent.
-
-## Configuration
-
-The project uses two configuration files:
-
-- **config.yaml** - Main configuration (LLM selection, MCP servers, Daytona, security, storage)
-- **llms.json** - LLM provider definitions
-
-### Quick Config
-
-Select your LLM in `config.yaml`:
-
-```yaml
-llm:
-  name: "claude-sonnet-4-5"  # Options: claude-sonnet-4-5, gpt-5.1-codex-mini, gemini-3-pro
-```
-
-Enable/disable MCP servers:
-
-```yaml
-mcp:
-  servers:
-    - name: "tavily"
-      enabled: true  # Set to false to disable
-```
-
-For complete configuration options including Daytona settings, security policies, and adding custom LLM providers, see the [Configuration Guide](docs/CONFIGURATION.md).
-
-## Roadmap
-
-Planned features and improvements:
-
-- [ ] CI/CD pipeline for automated testing
-- [ ] Additional MCP server integrations / More example notebooks
-- [ ] Performance benchmarks and optimizations
-- [ ] Improved search tool for smoother tool discovery
-- [ ] Claude skill integration
-- [ ] DeepAgents CLI integration (Need further investigation to see if it is possible)
-
-## Contributing
-
-We welcome contributions from the community! Here are some ways you can help:
-
-- **Code Contributions** - Bug fixes, new features, improvements (CI/CD coming soon)
-- **Use Cases** - Share how you're using PTC in production or research
-- **Example Notebooks** - Create demos showcasing different workflows
-- **MCP Servers** - Build or recommend MCP servers that work well with PTC (data processing, APIs, etc.)
-- **Prompt Tricks** - Share prompting techniques that improve agent performance
-
-Open an issue or PR on [GitHub](https://github.com/Chen-zexi/open-ptc-agent) to contribute!
-
-## Acknowledgements
-
-This project builds on research and tools from:
-
-**Research/Articles**
+### Research & Background
 
 - [Introducing advanced tool use on the Claude Developer Platform](https://www.anthropic.com/engineering/advanced-tool-use) - Anthropic
 - [Code execution with MCP: building more efficient AI agents](https://www.anthropic.com/engineering/code-execution-with-mcp) - Anthropic
 - [CodeAct: Executable Code Actions Elicit Better LLM Agents](https://arxiv.org/abs/2402.01030) - Wang et al.
 
-**Frameworks and Infrastructure**
+---
 
-- [LangChain DeepAgents](https://github.com/langchain-ai/deepagents) - Base Agent Framework
+## Project Structure
+
+```
+├── shared/                        # Shared resources (language-agnostic)
+│   ├── config/                    # Shared configuration
+│   │   └── defaults.yaml          # Default model and agent settings
+│   └── prompts/                   # Shared prompt templates
+│       ├── components/            # Reusable prompt components
+│       └── subagents/             # Subagent-specific prompts
+│
+├── typescript/                    # TypeScript implementation
+│   ├── src/
+│   │   ├── agent.ts               # PTCAgent implementation
+│   │   ├── backends/              # Backend implementations
+│   │   │   ├── daytona.ts         # DaytonaBackend
+│   │   │   ├── state.ts           # StateBackend (in-memory)
+│   │   │   └── protocol.ts        # Backend protocol definitions
+│   │   ├── config/                # Configuration management
+│   │   │   └── env.ts             # Environment variable config
+│   │   ├── core/                  # Core utilities
+│   │   │   ├── mcp_registry.ts    # MCP server registry
+│   │   │   └── security.ts        # Security utilities
+│   │   ├── middleware/            # Middleware components
+│   │   │   ├── fs.ts              # Filesystem middleware
+│   │   │   └── subagents.ts       # Subagent middleware
+│   │   ├── prompts/               # Prompt templates
+│   │   │   └── templates.ts       # Prompt components
+│   │   ├── subagents/             # Subagent configurations
+│   │   │   ├── general.ts         # General-purpose subagent
+│   │   │   └── research.ts        # Research subagent
+│   │   ├── tools/                 # Native tool implementations
+│   │   │   ├── bash/              # Shell command execution
+│   │   │   ├── code_execution/    # Python code execution
+│   │   │   ├── filesystem/        # File operations
+│   │   │   ├── research/          # Tavily search, think tool
+│   │   │   └── search/            # Glob, grep tools
+│   │   └── utils/                 # Utility modules
+│   │       └── storage/           # Cloud storage (S3, R2)
+│   │
+│   ├── mcp_servers/               # MCP server definitions
+│   │   ├── yfinance.ts            # Yahoo Finance tools
+│   │   └── tickertick.ts          # Tickertick news tools
+│   │
+│   ├── tests/                     # Test suite (145+ tests)
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── docs/                          # Documentation
+│   └── CONFIGURATION.md           # Configuration guide
+│
+├── package.json                   # Root monorepo package.json
+└── README.md
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 22+
+- npm or pnpm
+- [Daytona API Key](https://app.daytona.io/dashboard/keys) (for sandbox execution)
+
+### Installation
+
+```bash
+git clone https://github.com/rothnic/open-ptc-agent.git
+cd open-ptc-agent
+npm install
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+### Test
+
+```bash
+npm test
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in the `typescript/` directory (see `.env.example` for all options):
+
+```bash
+# Required: One LLM provider
+ANTHROPIC_API_KEY=your-key
+# or
+OPENAI_API_KEY=your-key
+
+# Required for DaytonaBackend
+DAYTONA_API_KEY=your-key
+
+# Optional: MCP Servers
+TAVILY_API_KEY=your-key
+
+# Optional: Cloud Storage
+R2_ACCESS_KEY_ID=...
+AWS_ACCESS_KEY_ID=...
+```
+
+### Model Tiers
+
+Configure model tiers via environment variables:
+
+```bash
+# Model tiers (small/medium/large)
+PTC_MODEL_SMALL=gpt-4o-mini           # For simple, fast tasks
+PTC_MODEL_MEDIUM=claude-sonnet-4-5-20250929   # For general use (default)
+PTC_MODEL_LARGE=claude-opus-4-5-20250929       # For complex reasoning
+
+# Default model (used when none specified)
+PTC_DEFAULT_MODEL=claude-sonnet-4-5-20250929
+
+# Subagent-specific overrides
+PTC_RESEARCH_MODEL=claude-sonnet-4-5-20250929
+PTC_GENERAL_PURPOSE_MODEL=claude-sonnet-4-5-20250929
+```
+
+### Shared Configuration
+
+The `shared/` directory contains language-agnostic configuration:
+
+- **shared/config/defaults.yaml** - Default model and agent settings
+- **shared/prompts/** - Prompt templates that can be shared across implementations
+
+---
+
+## API Reference
+
+### Creating an Agent
+
+```typescript
+import { createPTCAgent, DaytonaBackend } from "@open-ptc-agent/typescript";
+
+const agent = createPTCAgent({
+  model: "large", // or "medium", "small", or specific model name
+  backend: new DaytonaBackend(sandbox),
+  tools: [executeCodeTool],
+});
+
+await agent.invoke({ 
+  messages: [{ role: "user", content: "Analyze AAPL stock" }] 
+});
+```
+
+### Using StateBackend (In-Memory)
+
+```typescript
+import { StateBackend } from "@open-ptc-agent/typescript";
+
+const backend = new StateBackend(stateAndStore);
+const content = backend.read("/path/to/file.txt");
+const files = backend.globInfo("*.ts", "/src");
+const matches = backend.grepRaw("function", "/src");
+```
+
+### Using DaytonaBackend (Sandbox)
+
+```typescript
+import { DaytonaBackend } from "@open-ptc-agent/typescript";
+
+const backend = new DaytonaBackend(sandbox);
+const content = await backend.read("/path/to/file.txt");
+const files = await backend.globInfo("*.py", "/code");
+const matches = await backend.grepRaw("def ", "/code");
+```
+
+---
+
+## Native Tools
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| **executeCode** | Execute Python with MCP tool access | `code` |
+| **bash** | Run shell commands | `command`, `timeout`, `workingDir` |
+| **read** | Read file with line numbers | `filePath`, `offset`, `limit` |
+| **write** | Write/overwrite file | `filePath`, `content` |
+| **edit** | Exact string replacement | `filePath`, `oldString`, `newString` |
+| **glob** | File pattern matching | `pattern`, `path` |
+| **grep** | Content search | `pattern`, `path`, `outputMode` |
+
+---
+
+## Middleware (via deepagentsjs)
+
+| Middleware | Description | Tools Provided |
+|------------|-------------|----------------|
+| **SubagentsMiddleware** | Delegates specialized tasks to sub-agents with isolated execution | `task()` |
+| **FilesystemMiddleware** | File operations | `read_file`, `write_file`, `edit_file`, `glob`, `grep`, `ls` |
+| **TodoListMiddleware** | Task planning and progress tracking (auto-enabled) | `write_todos` |
+| **SummarizationMiddleware** | Auto-summarizes conversation history (auto-enabled) | - |
+
+---
+
+## Subagents
+
+| Subagent | Description | Tools |
+|----------|-------------|-------|
+| **research** | Web search with Tavily + think tool for strategic reflection | `internet_search`, `think` |
+| **general-purpose** | Full execute_code, filesystem, and vision tools for complex multi-step tasks | `execute_code`, filesystem tools |
+
+---
+
+## MCP Servers
+
+Built-in MCP server definitions:
+
+| Server | Description | Tools |
+|--------|-------------|-------|
+| **yfinance** | Yahoo Finance data | Stock prices, financials, quotes |
+| **tickertick** | Financial news | News articles, headlines |
+| **tavily** | Web search | General web search |
+
+---
+
+## Differences from Python Implementation
+
+This TypeScript implementation mirrors the Python [Chen-zexi/open-ptc-agent](https://github.com/Chen-zexi/open-ptc-agent) but has some differences due to library availability and language constraints:
+
+### ✅ Feature Parity
+
+| Feature | Python | TypeScript | Notes |
+|---------|--------|------------|-------|
+| Programmatic Tool Calling | ✅ | ✅ | Core paradigm implemented |
+| DaytonaBackend | ✅ | ✅ | Full sandbox support |
+| StateBackend | ✅ | ✅ | In-memory file operations |
+| Progressive Tool Discovery | ✅ | ✅ | On-demand tool loading |
+| Subagents (research, general) | ✅ | ✅ | Background execution supported |
+| MCP Integration | ✅ | ✅ | Yahoo Finance, Tickertick, Tavily |
+| Model Tier System | ✅ | ✅ | small/medium/large configuration |
+| Cloud Storage (S3, R2) | ✅ | ✅ | File upload support |
+| Glob/Grep Tools | ✅ | ✅ | File search operations |
+
+### ⚠️ Limitations / Differences
+
+| Feature | Python | TypeScript | Notes |
+|---------|--------|------------|-------|
+| **BackgroundSubagentMiddleware** | ✅ | ⚠️ Partial | Fire-and-collect pattern uses deepagentsjs SubagentsMiddleware, but async patterns differ |
+| **ViewImageMiddleware** | ✅ | ❌ Not yet | Vision/multimodal support not yet implemented |
+| **LangGraph Cloud Deployment** | ✅ | ⚠️ Partial | LangGraph.js deployment differs from Python; `langgraph.json` not directly compatible |
+| **Custom MCP Upload** | ✅ | ❌ Not yet | Python MCP implementations not uploadable in TS version |
+| **Auto Image Upload** | ✅ | ⚠️ Partial | Storage uploaders implemented, middleware integration pending |
+| **Jupyter Notebooks** | ✅ | ❌ N/A | Python-only feature; use Node.js scripts instead |
+| **config.yaml parsing** | ✅ | ⚠️ Different | Uses environment variables and shared/config/defaults.yaml |
+| **llms.json** | ✅ | ❌ Not yet | LLM provider definitions use LangChain model initialization |
+| **Alibaba OSS Storage** | ✅ | ❌ Not yet | Only S3 and R2 implemented |
+
+### 🔧 Architecture Differences
+
+| Aspect | Python | TypeScript |
+|--------|--------|------------|
+| **Framework** | langchain-ai/deepagents | langchain-ai/deepagentsjs |
+| **Package Manager** | uv / pip | npm / pnpm |
+| **Configuration** | config.yaml + .env | .env + shared/config/defaults.yaml |
+| **MCP Client** | Python mcp library | Uses stdio/subprocess |
+| **Prompt Templates** | Jinja2 (.md.j2) | Plain markdown + template strings |
+
+### 📋 Planned Features
+
+- [ ] ViewImageMiddleware for multimodal support
+- [ ] BackgroundSubagentMiddleware with wait/task_progress
+- [ ] Custom MCP server upload
+- [ ] Full llms.json compatibility
+- [ ] Alibaba OSS storage support
+
+---
+
+## Acknowledgements
+
+This project builds on:
+
+**Research/Articles**
+- [Introducing advanced tool use on the Claude Developer Platform](https://www.anthropic.com/engineering/advanced-tool-use) - Anthropic
+- [Code execution with MCP: building more efficient AI agents](https://www.anthropic.com/engineering/code-execution-with-mcp) - Anthropic
+- [CodeAct: Executable Code Actions Elicit Better LLM Agents](https://arxiv.org/abs/2402.01030) - Wang et al.
+
+**Frameworks & Infrastructure**
+- [LangChain DeepAgentsJS](https://github.com/langchain-ai/deepagentsjs) - TypeScript deep agent framework
+- [LangChain DeepAgents (Python)](https://github.com/langchain-ai/deepagents) - Python deep agent framework
+- [LangChain.js](https://js.langchain.com/) - JavaScript/TypeScript LLM framework
+- [LangGraph.js](https://langchain-ai.github.io/langgraphjs/) - Stateful agent framework
 - [Daytona](https://www.daytona.io/) - Sandbox infrastructure
 
-## Star History
+**Upstream Implementation**
+- [Chen-zexi/open-ptc-agent](https://github.com/Chen-zexi/open-ptc-agent) - Original Python implementation
 
-If you find this project useful, please consider giving it a star! It helps others discover this work.
+---
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Chen-zexi/open-ptc-agent&type=Date)](https://star-history.com/#Chen-zexi/open-ptc-agent&Date)
+## Contributing
+
+We welcome contributions! See the [upstream Python project](https://github.com/Chen-zexi/open-ptc-agent#contributing) for contribution guidelines.
+
+---
 
 ## License
 

@@ -1,0 +1,38 @@
+{
+  "name": "open-ptc-agent",
+  "version": "0.1.0",
+  "description": "Open source implementation of Programmatic Tool Calling (PTC) with MCP, powered by LangGraph and Daytona",
+  "private": true,
+  "workspaces": [
+    "typescript"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=typescript",
+    "test": "npm run test --workspace=typescript",
+    "lint": "npm run lint --workspace=typescript",
+    "format": "npm run format --workspace=typescript",
+    "typecheck": "npm run typecheck --workspace=typescript"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rothnic/open-ptc-agent.git"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "langgraph",
+    "langchain",
+    "deepagentsjs",
+    "typescript",
+    "llm",
+    "mcp",
+    "ptc",
+    "programmatic-tool-calling"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rothnic/open-ptc-agent/issues"
+  },
+  "homepage": "https://github.com/rothnic/open-ptc-agent#readme"
+}

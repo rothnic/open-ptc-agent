@@ -1,0 +1,80 @@
+{
+  "name": "@open-ptc-agent/typescript",
+  "version": "0.1.0",
+  "description": "TypeScript implementation of Open PTC Agent - Programmatic Tool Calling with LangChainJS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts tests/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts tests/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rothnic/open-ptc-agent.git"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "langgraph",
+    "langchain",
+    "typescript",
+    "llm",
+    "mcp",
+    "ptc",
+    "programmatic-tool-calling",
+    "daytona"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rothnic/open-ptc-agent/issues"
+  },
+  "homepage": "https://github.com/rothnic/open-ptc-agent#readme",
+  "dependencies": {
+    "@langchain/anthropic": "^1.0.0",
+    "@langchain/core": "^1.0.0",
+    "@langchain/langgraph": "^1.0.0",
+    "@langchain/openai": "^1.0.0",
+    "deepagents": "^1.0.0",
+    "fast-glob": "^3.3.3",
+    "langchain": "^1.0.4",
+    "micromatch": "^4.0.8",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.19.0",
+    "@langchain/langgraph-checkpoint": "^1.0.0",
+    "@langchain/tavily": "^1.0.0",
+    "@tsconfig/recommended": "^1.0.10",
+    "@types/micromatch": "^4.0.10",
+    "@types/node": "^22.13.5",
+    "dotenv": "^17.2.1",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-no-instanceof": "^1.0.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "globals": "^15.0.0",
+    "prettier": "^3.6.2",
+    "tsdown": "^0.15.12",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.22.0",
+    "vitest": "^2.1.8"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
